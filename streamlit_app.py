@@ -3,8 +3,8 @@ import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
 import pandas as pd
+import pytz
 
-# This sets up the look of the web page
 st.set_page_config(page_title="SLC Terminal A Flights", page_icon="🛫", layout="centered")
 
 def is_target_gate(gate_str):
@@ -22,13 +22,15 @@ def clean_cell(td):
     strings = list(td.stripped_strings)
     return strings[0] if strings else "N/A"
 
-# The @st.cache_data tells the website to hold onto the data for 5 minutes (300 seconds) 
-# so the SLC servers don't get overwhelmed if all your coworkers open the app at once.
 @st.cache_data(ttl=300)
 def get_flight_data():
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'}
     flights = []
-    now = datetime.now()
+    
+    # Permanently anchor the server's "now" clock to Utah (Mountain Time)
+    mt_tz = pytz.timezone('America/Denver')
+    now = datetime.now(mt_tz)
+    
     seen_pm = False
     
     for page in range(40):
@@ -57,13 +59,16 @@ def get_flight_data():
                         return flights 
                     
                     if is_target_gate(gate):
-                        sort_key = datetime.max 
+                        sort_key = now # Default fallback
                         try:
                             clean_time = time_str.replace('*', '').strip()
                             parsed_time = datetime.strptime(clean_time, "%I:%M %p")
-                            flight_time = parsed_time.replace(year=now.year, month=now.month, day=now.day)
+                            
+                            # Construct the flight time explicitly in Mountain Time
+                            flight_time = mt_tz.localize(datetime(now.year, now.month, now.day, parsed_time.hour, parsed_time.minute))
                             sort_key = flight_time
                             
+                            # Compare the Mountain Time flight against the Mountain Time "now"
                             if flight_time < now and ("Scheduled" in status or "On Time" in status):
                                 status = "Departed"
                                 
@@ -83,7 +88,6 @@ def get_flight_data():
             
     return flights
 
-# --- Web Page Design ---
 st.title("🛫 SLC Terminal A (Gates A38+)")
 st.write("Live closing-shift departures. Data pulled directly from SLC Airport Systems.")
 
@@ -93,14 +97,11 @@ with st.spinner('Scanning all pages of the SLC flight database...'):
 if not current_flights:
     st.warning("No flights currently listed for the specified gates.")
 else:
-    # Sort chronologically
     current_flights.sort(key=lambda x: x['sort_key'])
     
-    # Convert our list into a Pandas DataFrame (a fancy table that looks great on mobile)
     df = pd.DataFrame(current_flights)
     df = df.drop(columns=['sort_key'])
     
-    # Display the table on the website
     st.dataframe(df, hide_index=True, use_container_width=True)
 
 st.caption("This board refreshes automatically every 5 minutes. You can also pull down on your phone screen to manually refresh.")
