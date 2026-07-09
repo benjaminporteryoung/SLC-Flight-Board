@@ -89,7 +89,7 @@ def get_flight_data():
     return flights
 
 st.title("🛫 SLC Terminal A (Gates A38+)")
-st.write("Live closing-shift departures. Data pulled directly from SLC Airport Systems.")
+st.write("Live departures for Terminal A. Data pulled directly from SLC Airport Systems.")
 
 with st.spinner('Scanning all pages of the SLC flight database...'):
     current_flights = get_flight_data()
