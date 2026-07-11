@@ -14,6 +14,7 @@ def is_target_gate(gate_str):
         return False
     try:
         gate_num = int(gate_str[1:])
+        # Keep gates 38 and above, but explicitly exclude 39
         return gate_num >= 38 and gate_num != 39
     except ValueError:
         return False
@@ -58,18 +59,27 @@ def get_flight_data():
                             parsed_time = datetime.strptime(clean_time, "%I:%M %p")
                             flight_time = mt_tz.localize(datetime(now.year, now.month, now.day, parsed_time.hour, parsed_time.minute))
                             sort_key = flight_time
-                            if flight_time < now and ("Scheduled" in status or "On Time" in status):
-                                status = "Departed"
+                            
+                            # Calculate exactly how many minutes until the flight leaves
+                            minutes_until_flight = (flight_time - now).total_seconds() / 60.0
+                            
+                            # Override the lazy "Scheduled" status based on real-time math
+                            if "Scheduled" in status or "On Time" in status:
+                                if minutes_until_flight < 0:
+                                    status = "Departed"
+                                elif 0 <= minutes_until_flight <= 35:
+                                    status = "Boarding ✈️"
+                                    
                         except ValueError: pass
                             
                         flights.append({'TIME': time_str, 'FLIGHT': flight_num, 'DESTINATION': destination, 'GATE': gate, 'STATUS': status, 'sort_key': sort_key})
         except Exception: break 
     return flights
 
-st.title("🛫 SLC Terminal A Gates A38+")
-st.write("Live flight departures. Data pulled directly from SLC Airport Systems. Gate A39 not included.")
+st.title("🛫 SLC Terminal A (Gates A38+)")
+st.write("Live flight departures. Data pulled directly from SLC Airport Systems.")
 
-# --- The New Sort Control ---
+# --- The Sort Control ---
 sort_order = st.radio("Sort Order:", ["Earliest First", "Latest First"], horizontal=True)
 
 with st.spinner('Scanning...'):
