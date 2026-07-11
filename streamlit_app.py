@@ -95,4 +95,4 @@ else:
     df = pd.DataFrame(current_flights).drop(columns=['sort_key'])
     st.dataframe(df, hide_index=True, use_container_width=True)
 
-st.caption("Refreshes every 5 minutes. Pull down to refresh manually.")
+st.caption("Refreshes every 5 minutes. Refresh page to refresh manually.")
