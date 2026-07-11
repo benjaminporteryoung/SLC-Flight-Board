@@ -6,17 +6,14 @@ import pandas as pd
 import pytz
 
 st.set_page_config(page_title="SLC Terminal A Flights", page_icon="🛫", layout="centered")
-
 def is_target_gate(gate_str):
-    if not gate_str or not isinstance(gate_str, str):
-        return False
-    if not gate_str.startswith('A'):
-        return False
+    if not gate_str or not isinstance(gate_str, str): return False
+    if not gate_str.startswith('A'): return False
     try:
         gate_num = int(gate_str[1:])
-        return gate_num >= 38
-    except ValueError:
-        return False
+        # Keep gates 38 and higher, but explicitly exclude 39
+        return gate_num >= 38 and gate_num != 39
+    except ValueError: return False
 
 def clean_cell(td):
     strings = list(td.stripped_strings)
