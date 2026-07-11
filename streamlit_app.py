@@ -14,7 +14,7 @@ def is_target_gate(gate_str):
         return False
     try:
         gate_num = int(gate_str[1:])
-        return gate_num >= 38
+        return gate_num >= 38 and gate_num != 39
     except ValueError:
         return False
 
