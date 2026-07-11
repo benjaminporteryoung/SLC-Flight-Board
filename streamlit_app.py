@@ -66,8 +66,8 @@ def get_flight_data():
         except Exception: break 
     return flights
 
-st.title("🛫 SLC Terminal A (Gates A38+)")
-st.write("Live flight departures. Data pulled directly from SLC Airport Systems.")
+st.title("🛫 SLC Terminal A Gates A38+")
+st.write("Live flight departures. Data pulled directly from SLC Airport Systems. Gate A39 not included.")
 
 # --- The New Sort Control ---
 sort_order = st.radio("Sort Order:", ["Earliest First", "Latest First"], horizontal=True)
