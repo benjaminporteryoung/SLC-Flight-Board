@@ -67,8 +67,8 @@ def get_flight_data():
                             if "Scheduled" in status or "On Time" in status:
                                 if minutes_until_flight < 0:
                                     status = "Departed"
-                                elif 0 <= minutes_until_flight <= 35:
-                                    status = "Boarding ✈️"
+                                elif 0 <= minutes_until_flight <= 30:
+                                    status = "Boarding"
                                     
                         except ValueError: pass
                             
